@@ -141,7 +141,13 @@ async function bootstrap() {
   });
   */
 
-
+  app.connectMicroservice({
+    transport: Transport.REDIS,
+    options: {
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+    },
+  });
 
   await app.listen(PORT, () => {
     logger.log(`Starting service : http://localhost:${PORT}${PREFIX}/`);
