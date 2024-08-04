@@ -1,0 +1,227 @@
+
+<!DOCTYPE HTML>
+<html>
+<html lang="en">
+  <head>
+    <title>NAVER NEWS</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="http://okcanvas.net/miniapp/SlickGrid/dist/styles/css/example-demo.css" type="text/css"/>
+    <link rel="stylesheet" href="http://okcanvas.net/miniapp/SlickGrid/dist/styles/css/slick-alpine-theme.css" type="text/css"/>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: White;
+        overflow: auto;
+      }
+  
+      body {
+        font: 11px Helvetica, Arial, sans-serif;
+      }
+  
+      #container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+  
+      #description {
+        position: fixed;
+        top: 30px;
+        right: 30px;
+        width: 25em;
+        background: beige;
+        border: solid 1px gray;
+        z-index: 1000;
+      }
+  
+      #description h2 {
+        padding-left: 0.5em;
+      }
+  
+      /** override slick-cell to make it look like Excel sheet */
+      .slick-container {
+        --alpine-header-column-height: 20px;
+        --alpine-header-font-weight: 500;
+        --alpine-cell-border-width: 0 1px 1px 0;
+        --alpine-cell-border-color: #d4d4d4;
+      }
+
+      .slick-cell-checkboxsel {
+      background: #f0f0f0;
+      border-right-color: silver;
+      border-right-style: solid;
+    }
+    </style>
+  </head>
+
+
+<body>
+  <div id="container" class="slick-container"></div>
+
+  
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs/Sortable.min.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/examples/sortable-cdn-fallback.js"></script>
+
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/slick.core.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/slick.interactions.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/slick.grid.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/plugins/slick.checkboxselectcolumn.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/plugins/slick.autotooltips.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/plugins/slick.cellrangedecorator.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/plugins/slick.cellrangeselector.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/plugins/slick.cellcopymanager.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/plugins/slick.cellselectionmodel.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/plugins/slick.rowselectionmodel.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/controls/slick.columnpicker.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/controls/slick.gridmenu.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/slick.formatters.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/slick.editors.js"></script>
+<script src="http://okcanvas.net/miniapp/SlickGrid/dist/browser/plugins/slick.cellmenu.js"></script>
+
+<script>
+  function actionFormatter(row, cell, value, columnDef, dataContext) {
+    // only enable the Action menu when Priority is set to High (3)
+    if (dataContext.priority === 3) {
+      return `<div class="cell-menu-dropdown">Action <i class="sgi sgi-caret sgi-24px"></i></div>`;
+    }
+    return `<div class="cell-menu-dropdown disabled">Action <i class="sgi sgi-caret sgi-24px"></i></div>`;
+  }
+
+  var grid;
+  var cellMenuPlugin;
+  var columns = [
+    {id: 'idx', name: 'NO', width: 50, cssClass: "cell-effort-center", formatter: function(row){return row+1} },
+    {id: "keyword", name: "keyword", field: "keyword", sortable: true},
+    {id: "officeName", name: "매체명", field: "officeName", sortable: true},
+    {id: "publishDate", name: "발행일", field: "publishDate", width: 90, sortable: true},
+    {id: "title", name: "제목", field: "title", width: 350, sortable: true},
+    {id: "content", name: "내용", field: "content", width: 500, sortable: true},
+    {
+      id: "action", name: "Action", field: "id", width: 80, resizable: false,
+      formatter: actionFormatter,
+      cellMenu: {
+        menuUsabilityOverride: function (args) {
+          //return (args.dataContext.priority === 3); // option 3 is High
+          return true;
+        },
+        commandTitle: "Commands",
+        commandItems: [
+          { command: "command1", title: "Command 1", cssClass: "orange" },
+          {
+            command: "command2", title: "Command 2",
+            // you can use the "action" callback and/or subscribe to the "onCallback" event, they both have the same arguments
+            action: function (e, args) {
+              console.log(args.dataContext, args.column)
+              // action callback.. do something
+            },
+            // only enable command when there's no Effort Driven
+            itemUsabilityOverride: function (args) {
+              return (!args.dataContext.effortDriven);
+            }
+          },
+          {
+            command: "delete-row", title: "Delete Row",
+            iconCssClass: "sgi sgi-close red",
+            cssClass: "bold", textCssClass: "red",
+            // only show command to "Delete Row" when there's no Effort Driven
+            itemVisibilityOverride: function (args) {
+              return (!args.dataContext.effortDriven);
+            }
+          },
+        ],
+      }
+    }
+  ];
+
+  var options = {
+    enableCellNavigation: true,
+    enableColumnReorder: false
+  };
+
+  var checkboxSelector;
+  var isSelectAllCheckboxHidden = false;
+
+  
+  checkboxSelector = new Slick.CheckboxSelectColumn({
+      cssClass: "slick-cell-checkboxsel"
+  });
+
+  function toggleHideSelectAllCheckbox() {
+    isSelectAllCheckboxHidden = !isSelectAllCheckboxHidden;
+    checkboxSelector.setOptions({ hideSelectAllCheckbox: isSelectAllCheckboxHidden });
+  }
+
+  columns.unshift(checkboxSelector.getColumnDefinition());
+
+  var data = [];
+  grid = new Slick.Grid("#container", data, columns, options);
+  grid.setSelectionModel(new Slick.RowSelectionModel({selectActiveRow: false}));
+  grid.registerPlugin(checkboxSelector);
+
+  cellMenuPlugin = new Slick.Plugins.CellMenu({ hideMenuOnScroll: true, subItemChevronClass: 'sgi sgi-chevron-right' });
+  grid.registerPlugin(cellMenuPlugin);
+
+  //var columnpicker = new Slick.Controls.ColumnPicker(columns, grid, options);
+  //var gridMenuControl = new Slick.Controls.GridMenu(columns, grid, options);
+
+  grid.onSelectedRowsChanged.subscribe(function (e, args) {
+        // debugging to see the active row in response to questions
+        // active row has no correlation to the selected rows
+        // it will remain null until a row is clicked and made active
+        // selecting and deselecting rows via checkboxes will not change the active row
+        var rtn = args.grid.getActiveCell();
+        var x = args.rows;
+    });
+
+  var connected = false;
+  var ws = null;
+  var line = 3;
+  var lot = '231010-001';
+
+  //
+  function ws_start() {
+    ws = new WebSocket('ws://okcanvas.net:9680/gateway');
+    //ws = new WebSocket('ws://211.42.156.52:8680/gateway');
+    ws.onopen = function() {
+      console.log('onopen...');
+      connected = true;
+    }
+
+    ws.onerror = function(evt) {
+      console.log('onerror', evt);
+    }
+
+    ws.onclose = function() {
+      console.log('onclose...');
+      connected = false;
+      //
+      setTimeout(() => {
+        ws_start();
+      }, 3000);
+    }
+
+    ws.onmessage = function(msg) {
+      const recvData = JSON.parse(msg.data);
+      console.log('onmessage', new Date(), recvData);
+
+      const found = data.find(e => e.articleId == recvData.articleId);
+      if (!found && recvData.articleId) {
+        data.unshift(recvData);
+        grid.invalidate();
+      }
+    }
+  }
+  ws_start();
+
+
+</script>
+</body>
+</html>

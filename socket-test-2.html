@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <button id="sendBroadcast">
+    reset
+  </button>
+
+</body>
+
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+  crossorigin="anonymous"></script>
+
+<script>
+  var connected = false;
+  var ws = null;
+  var line = 3;
+  var lot = '231010-001';
+
+  $('#sendBroadcast').on('click', function() {
+    if (connected && ws) {
+      ws.send(JSON.stringify({
+        event: 'msg:slitting:reset',
+        data: {
+          line: line,
+          position: 0
+        }
+      }));
+    }
+  })
+
+
+  //
+  function requestStatus() {
+    if (connected && ws) {
+      ws.send(JSON.stringify({
+        event: 'msg:news',
+        data: {
+          line: line,
+          lot: lot
+        }
+      }));
+    }
+  }
+  setInterval(() => { requestStatus(); }, 1000)
+
+  //
+  function ws_start() {
+    ws = new WebSocket('ws://localhost:9680/gateway?token=12345467890');
+    //ws = new WebSocket('ws://211.42.156.52:9680/gateway');
+    ws.onopen = function() {
+      console.log('onopen...');
+      connected = true;
+    }
+
+    ws.onerror = function(evt) {
+      console.log('onerror', evt);
+    }
+
+    ws.onclose = function() {
+      console.log('onclose...');
+      connected = false;
+      //
+      setTimeout(() => {
+        ws_start();
+      }, 3000);
+    }
+
+    ws.onmessage = function(msg) {
+      const recvData = JSON.parse(msg.data);
+      console.log('onmessage', new Date(), recvData);
+      //ws.close();
+
+      /*
+      if (connected) {
+        setTimeout(() => {
+          if (!connected) return;
+
+          console.log('<<< SEND')
+          ws.send(JSON.stringify({
+            event: 'msg:news',
+            //event: 'message',
+            data: {
+              userId: 1000,
+              test: 'asdhjkasdjkasdjkadskada'
+            }
+          }));
+        }, 5000)
+      }
+      */
+      
+    }
+  }
+  ws_start();
+</script>
+
+</html>

@@ -1,0 +1,76 @@
+
+<!DOCTYPE HTML>
+<html>
+<html lang="en">
+  <head>
+    <title>NAVER NEWS</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+    
+  </head>
+
+
+<body>
+  <div id="container" class="slick-container"></div>
+</body>
+  
+
+
+<script>
+  
+
+  var connected = false;
+  var ws = null;
+  var line = 3;
+  var lot = '231010-001';
+
+  //
+  function ws_start() {
+    ws = new WebSocket('ws://localhost:9680/gateway?token=12345467890');
+    //ws = new WebSocket('ws://211.42.156.52:8680/gateway');
+    ws.onopen = function() {
+      console.log('onopen...');
+      connected = true;
+    }
+
+    ws.onerror = function(evt) {
+      console.log('onerror', evt);
+    }
+
+    ws.onclose = function() {
+      console.log('onclose...');
+      connected = false;
+      //
+      setTimeout(() => {
+        ws_start();
+      }, 3000);
+    }
+
+    ws.onmessage = function(msg) {
+      const recvData = JSON.parse(msg.data);
+      console.log('onmessage', new Date(), recvData);
+    }
+  }
+  ws_start();
+
+  //
+  function requestStatus() {
+    if (connected && ws) {
+      ws.send(JSON.stringify({
+        event: 'msg:news',
+        data: {
+          line: line,
+          lot: lot
+        }
+      }));
+    }
+  }
+  setInterval(() => { requestStatus(); }, 1000)
+
+
+</script>
+</body>
+</html>
