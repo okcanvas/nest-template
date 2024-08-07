@@ -58,7 +58,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     SocketGateway.logger.log('connected');
     //this.gateway.createUser(client);
 
-    console.log(client.userInfo)
+    console.log(client.userInfo, req.query)
   }
 
   //  소켓 연결 해제
